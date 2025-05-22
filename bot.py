@@ -360,19 +360,19 @@ async def ranking_updater():
     for i, coleta in enumerate(ranking, start=1):
         lines.append(f"**{i}. {coleta.nome}** (ID: {coleta.usuario_id}) — {coleta.caixas} caixas")
 
-    embed = discord.Embed(
-        title="**🏆 RANKING DE COLETA 🏆**",
-        description="\n".join(lines) if lines else "Nenhum dado registrado ainda.",
-        color=discord.Color.red()
-    )
+    incorporar = discord.Embed(
+    title="**🏆 RANKING DA COLETA 🏆**",
+    description="\n".join(lines) if lines else "Nenhum dado registrado ainda.",
+    color=discord.Color.red()
+)
 
-    channel = bot.get_channel(RANKING_CHANNEL)
-    if channel:
-        async for msg in channel.history(limit=1):
-            await msg.edit(embed=embed)
-            break
-        else:
-            await channel.send(embed=embed)
+canal = bot.get_channel(RANKING_CHANNEL)
+if canal:
+    async for msg in canal.history(limit=1):
+        await msg.edit(embed=incorporar)
+        break
+    else:
+        await canal.send(embed=incorporar)
 
 # --------------------
 # Eventos
@@ -387,7 +387,7 @@ async def on_ready():
     ranking_updater.start()
 
 # --------------------
-# FastAPI Setup
+# Configuração FastAPI
 # --------------------
 
 app = FastAPI()
@@ -398,10 +398,10 @@ async def root():
 
 @app.get("/ping")
 async def ping():
-    return {"message": "pong"}
+    return {"mensagem": "pong"}
 
 # --------------------
-# Run bot e FastAPI juntos
+# Execute bot e FastAPI juntos
 # --------------------
 
 async def start_bot():
@@ -409,5 +409,12 @@ async def start_bot():
 
 async def main():
     porta = int(os.getenv("PORTA", 8000))
+    bot_task = asyncio.create_task(start_bot())
+    config = uvicorn.Config(app, host="0.0.0.0", port=porta)
+    server = uvicorn.Server(config)
+    api_task = asyncio.create_task(server.serve())
 
-if __name__ == "__bot.py__":
+    await asyncio.gather(bot_task, api_task)
+
+if __name__ == "__main__":
+    asyncio.run(main())
