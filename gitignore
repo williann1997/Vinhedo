@@ -1,3 +1,40 @@
+# Python cache e compilados
 __pycache__/
-ranking.json
+*.py[cod]
+*$py.class
+
+# Ambiente virtual
+venv/
 .env
+.env.*
+
+# Logs
+*.log
+
+# Arquivos de banco de dados locais (caso usar sqlite)
+*.sqlite3
+*.db
+
+# Cache do pytest
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# MacOS
+.DS_Store
+
+# Arquivos secretos que você usa localmente
+secrets.json
+secrets.yaml
+
+# Render (se criar arquivos específicos)
+*.pid
+
+# Pipenv lock file (se usar)
+Pipfile.lock￼Enter
