@@ -1,6 +1,5 @@
-discord.py==2.4.1
-fastapi==0.95.2
-uvicorn[standard]==0.22.0
-SQLAlchemy==2.0.19
-asyncpg==0.27.0        # driver PostgreSQL async (se usar postgres)
-httpx==0.24.1
+fastapi
+uvicorn[standard]
+discord.py[voice]
+sqlalchemy[asyncio]
+asyncpg
