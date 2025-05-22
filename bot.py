@@ -161,8 +161,12 @@ async def enviar_embed_coleta(interaction: discord.Interaction):
 @bot.tree.command(name="enviar_embed_venda", description="Envia embed de venda", guild=discord.Object(id=GUILD_ID))
 async def enviar_embed_venda(interaction: discord.Interaction):
     embed = discord.Embed(
-        title="**REGISTRO DE VENDAS DE MUNIÇÃO**",
-        description="Clique no botão abaixo para registrar sua venda!",
+    title="**REGISTRO DE VENDAS DE MUNIÇÃO**",
+    description="Clique no botão abaixo para registrar sua venda!",
+    color=discord.Color.red()
+)
+embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/684/684908.png")
+embed.set_footer(text="Sistema automatizado de registro")
 import os
 import discord
 from discord.ext import tasks, commands
