@@ -404,4 +404,8 @@ async def start_bot():
     await bot.start(TOKEN)
 
 async def main():
-    port = int(os.getenv("PORT", 800￼Enter
+    porta = int(os.getenv("PORTA", 8000))
+
+if __name__ == "__main__":
+    uvicorn bot:app --host 0.0.0.0 --port 8000
+   
