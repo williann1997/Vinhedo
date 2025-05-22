@@ -1,5 +1,3 @@
-fastapi
-uvicorn[standard]
-discord.py[voice]
-sqlalchemy[asyncio]
+discord.py
+SQLAlchemy[asyncio]
 asyncpg
