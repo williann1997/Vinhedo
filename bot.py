@@ -410,4 +410,4 @@ async def start_bot():
 async def main():
     porta = int(os.getenv("PORTA", 8000))
 
-if __name__ == "__main__":
+if __name__ == "__bot.py__":
