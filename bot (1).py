@@ -1,13 +1,16 @@
-
+import os
 import discord
 from discord.ext import tasks, commands
 from discord import app_commands
-import json
-import os
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import Column, Integer, String, select
 
+# Configurações de ambiente
 TOKEN = os.getenv("DISCORD_TOKEN")
-assert TOKEN, "Erro: DISCORD_TOKEN não está configurado."
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+# Configurações do Discord
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guilds = True
@@ -19,67 +22,57 @@ EMBED_CHANNEL = 1373300281730924624
 ADMIN_CHANNEL = 1374559903414227155
 RANKING_CHANNEL = 1374656368979480617
 
-DATA_FILE = "ranking.json"
+# Configuração do banco de dados com SQLAlchemy Async
+Base = declarative_base()
 
-def load_data():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            return json.load(f)
-    return {}
+class Coleta(Base):
+    __tablename__ = "coletas"
+    usuario_id = Column(String, primary_key=True)
+    nome = Column(String)
+    caixas = Column(Integer)
 
-def save_data(data):
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+engine = create_async_engine(DATABASE_URL, echo=False)
+async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
+# Função para salvar/atualizar coleta no banco
+async def salvar_coleta(uid, nome, caixas):
+    async with async_session() as session:
+        coleta = await session.get(Coleta, uid)
+        if coleta:
+            coleta.caixas += caixas
+        else:
+            coleta = Coleta(usuario_id=uid, nome=nome, caixas=caixas)
+            session.add(coleta)
+        await session.commit()
+
+# Modal para registrar coleta
 class ColetaModal(discord.ui.Modal, title="Registrar Coleta"):
     nome = discord.ui.TextInput(label="Nome", required=True)
     usuario_id = discord.ui.TextInput(label="ID", required=True)
     caixas = discord.ui.TextInput(label="Quantidade de Caixas", required=True)
 
     async def on_submit(self, interaction: discord.Interaction):
-        data = load_data()
         uid = self.usuario_id.value
         nome = self.nome.value
-        try:
-            caixas = int(self.caixas.value)
-            if caixas <= 0:
-                raise ValueError
-        except ValueError:
-            await interaction.response.send_message(
-                "Por favor, insira um número válido e positivo para a quantidade de caixas.",
-                ephemeral=True
-            )
-            return
+        caixas = int(self.caixas.value)
 
-        if uid in data:
-            data[uid]["caixas"] += caixas
-        else:
-            data[uid] = {"nome": nome, "caixas": caixas}
-
-        save_data(data)
+        await salvar_coleta(uid, nome, caixas)
 
         admin_channel = bot.get_channel(ADMIN_CHANNEL)
         if admin_channel:
             await admin_channel.send(
                 f"Nova coleta registrada:\n**Nome:** {nome}\n**ID:** {uid}\n**Caixas:** {caixas}"
             )
-        else:
-            print(f"Canal admin com ID {ADMIN_CHANNEL} não encontrado.")
 
         await interaction.response.send_message("Coleta registrada com sucesso!", ephemeral=True)
 
+# View com botão para registrar coleta
 class ColetaView(discord.ui.View):
     @discord.ui.button(label="REGISTRAR COLETA", style=discord.ButtonStyle.success)
     async def registrar(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(ColetaModal())
 
-@bot.event
-async def on_ready():
-    print(f"Bot online como {bot.user}")
-    synced = await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
-    print(f"Comandos sincronizados: {len(synced)}")
-    ranking_updater.start()
-
+# Comando para enviar embed com botão
 @bot.tree.command(name="enviar_embed", description="Envia embed de coleta", guild=discord.Object(id=GUILD_ID))
 async def enviar_embed(interaction: discord.Interaction):
     embed = discord.Embed(
@@ -95,17 +88,20 @@ async def enviar_embed(interaction: discord.Interaction):
         await channel.send(embed=embed, view=ColetaView())
         await interaction.response.send_message("Embed enviada!", ephemeral=True)
     else:
-        print(f"Canal com ID {EMBED_CHANNEL} não encontrado.")
         await interaction.response.send_message("Canal não encontrado.", ephemeral=True)
 
+# Tarefa para atualizar ranking a cada 5 minutos
 @tasks.loop(minutes=5)
 async def ranking_updater():
-    data = load_data()
-    ranking = sorted(data.items(), key=lambda x: x[1]["caixas"], reverse=True)
+    async with async_session() as session:
+        result = await session.execute(
+            select(Coleta).order_by(Coleta.caixas.desc()).limit(10)
+        )
+        ranking = result.scalars().all()
 
     lines = []
-    for i, (uid, info) in enumerate(ranking[:10], start=1):
-        lines.append(f"**{i}. {info['nome']}** (ID: {uid}) — {info['caixas']} caixas")
+    for i, coleta in enumerate(ranking, start=1):
+        lines.append(f"**{i}. {coleta.nome}** (ID: {coleta.usuario_id}) — {coleta.caixas} caixas")
 
     embed = discord.Embed(
         title="**🏆 RANKING DE COLETA 🏆**",
@@ -120,7 +116,13 @@ async def ranking_updater():
             break
         else:
             await channel.send(embed=embed)
-    else:
-        print(f"Canal ranking com ID {RANKING_CHANNEL} não encontrado.")
+
+@bot.event
+async def on_ready():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    print(f"Bot online como {bot.user}")
+    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+    ranking_updater.start()
 
 bot.run(TOKEN)
