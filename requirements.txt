@@ -1,1 +1,5 @@
-web: python main.py
+fastapi
+uvicorn[standard]
+discord.py[voice]
+sqlalchemy[asyncio]
+asyncpg
