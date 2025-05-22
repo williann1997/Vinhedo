@@ -70,7 +70,6 @@ async def salvar_coleta(uid, nome, caixas):
             coleta = Coleta(usuario_id=uid, nome=nome, caixas=caixas)
             session.add(coleta)
         await session.commit()
-
 async def salvar_venda(uid, nome, descricao, entregue, valor):
     async with async_session() as session:
         venda = await session.get(Venda, uid)
@@ -83,20 +82,15 @@ async def salvar_venda(uid, nome, descricao, entregue, valor):
             session.add(venda)
         await session.commit()
 
-# --------------------
-# Modals e Views
-# --------------------
-
 class ColetaModal(discord.ui.Modal, title="Registrar Coleta"):
     nome = discord.ui.TextInput(label="Nome", required=True)
     usuario_id = discord.ui.TextInput(label="ID", required=True)
     caixas = discord.ui.TextInput(label="Quantidade de Caixas", required=True)
-
-    async def on_submit(self, interaction: discord.Interaction):
+async def on_submit(self, interaction: discord.Interaction):
         uid = self.usuario_id.value
         nome = self.nome.value
         caixas = int(self.caixas.value)
-  await salvar_coleta(uid, nome, caixas)
+        await salvar_coleta(uid, nome, caixas)
 
         admin_channel = bot.get_channel(ADMIN_CHANNEL)
         if admin_channel:
@@ -104,10 +98,6 @@ class ColetaModal(discord.ui.Modal, title="Registrar Coleta"):
                 f"Nova coleta registrada:\n**Nome:** {nome}\n**ID:** {uid}\n**Caixas:** {caixas}"
             )
         await interaction.response.send_message("Coleta registrada com sucesso!", ephemeral=True)
-
-class VendaModal(discord.ui.Modal, title="Registrar Venda de Munição"):
-    nome = discord.ui.TextInput(label="Nome", required=True)
-    usuario_id = discord.ui.TextInput(label="ID", required=True)
     descricao = discord.ui.TextInput(label="Descrição da Venda", required=True, style=discord.TextStyle.paragraph)
     entregue = discord.ui.TextInput(label="Venda entregue? (Sim/Não)", required=True)
     valor = discord.ui.TextInput(label="Valor total da venda (número)", required=True)
