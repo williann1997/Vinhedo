@@ -8,7 +8,6 @@ from sqlalchemy import Column, Integer, String, select
 from fastapi import FastAPI
 import uvicorn
 import asyncio
-import httpx
 
 # --------------------
 # Configurações
@@ -23,7 +22,7 @@ RANKING_CHANNEL = int(os.getenv("RANKING_CHANNEL", "1374656368979480617"))
 CARGO_REQUEST_CHANNEL = int(os.getenv("CARGO_REQUEST_CHANNEL", "1373308437684813865"))
 VENDA_CHANNEL = int(os.getenv("VENDA_CHANNEL", "1373305755465158677"))
 VENDA_ADMIN_CHANNEL = int(os.getenv("VENDA_ADMIN_CHANNEL", "1374613709770723440"))
-WILLIAN_USER_ID = int(os.getenv("WILLIAN_USER_ID", "YOUR_WILLIAN_DISCORD_USER_ID"))  # substituir
+WILLIAN_USER_ID = int(os.getenv("WILLIAN_USER_ID", "0"))  # substitua se quiser
 
 # --------------------
 # Discord Bot Setup
@@ -85,7 +84,7 @@ async def salvar_venda(uid, nome, descricao, entregue, valor):
         await session.commit()
 
 # --------------------
-# Modals e Views (resumido p/ foco)
+# Modals e Views
 # --------------------
 
 class ColetaModal(discord.ui.Modal, title="Registrar Coleta"):
@@ -162,6 +161,8 @@ async def enviar_embed_coleta(interaction: discord.Interaction):
 @bot.tree.command(name="enviar_embed_venda", description="Envia embed de venda", guild=discord.Object(id=GUILD_ID))
 async def enviar_embed_venda(interaction: discord.Interaction):
     embed = discord.Embed(
+        title="**REGISTRO DE VENDAS DE MUNIÇÃO**",
+        description="Clique no botão abaixo para registrar sua venda!",
 import os
 import discord
 from discord.ext import tasks, commands
@@ -172,7 +173,6 @@ from sqlalchemy import Column, Integer, String, select
 from fastapi import FastAPI
 import uvicorn
 import asyncio
-import httpx
 
 # --------------------
 # Configurações
@@ -187,7 +187,7 @@ RANKING_CHANNEL = int(os.getenv("RANKING_CHANNEL", "1374656368979480617"))
 CARGO_REQUEST_CHANNEL = int(os.getenv("CARGO_REQUEST_CHANNEL", "1373308437684813865"))
 VENDA_CHANNEL = int(os.getenv("VENDA_CHANNEL", "1373305755465158677"))
 VENDA_ADMIN_CHANNEL = int(os.getenv("VENDA_ADMIN_CHANNEL", "1374613709770723440"))
-WILLIAN_USER_ID = int(os.getenv("WILLIAN_USER_ID", "YOUR_WILLIAN_DISCORD_USER_ID"))  # substituir
+WILLIAN_USER_ID = int(os.getenv("WILLIAN_USER_ID", "0"))  # substitua se quiser
 
 # --------------------
 # Discord Bot Setup
@@ -249,7 +249,7 @@ async def salvar_venda(uid, nome, descricao, entregue, valor):
         await session.commit()
 
 # --------------------
-# Modals e Views (resumido p/ foco)
+# Modals e Views
 # --------------------
 
 class ColetaModal(discord.ui.Modal, title="Registrar Coleta"):
@@ -341,7 +341,7 @@ async def enviar_embed_venda(interaction: discord.Interaction):
         await interaction.response.send_message("Canal não encontrado.", ephemeral=True)
 
 # --------------------
-# Ranking updater - Exemplo simplificado
+# Ranking updater
 # --------------------
 
 @tasks.loop(minutes=5)
@@ -392,14 +392,16 @@ app = FastAPI()
 async def root():
     return {"status": "Bot rodando!"}
 
+@app.get("/ping")
+async def ping():
+    return {"message": "pong"}
+
 # --------------------
-# Ping interno para manter app vivo
+# Run bot e FastAPI juntos
 # --------------------
 
-async def internal_ping():
-    await bot.wait_until_ready()
-    url = os.getenv("APP_URL")  # URL do app (ex: https://seubot.onrender.com/)
-    if not url:
-        print("APP_URL não configurado, ping interno desabilitado.")
-        return
-    client￼Enter
+async def start_bot():
+    await bot.start(TOKEN)
+
+async def main():
+    port = int(os.getenv("PORT", 800￼Enter
