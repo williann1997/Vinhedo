@@ -8,7 +8,7 @@ from sqlalchemy import Column, Integer, String, select
 
 # Configurações de ambiente
 TOKEN = os.getenv("DISCORD_TOKEN")
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("URL_DO_BANCO_DE_DADOS")
 
 # Configurações do Discord
 intents = discord.Intents.default()
